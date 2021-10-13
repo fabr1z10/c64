@@ -19,6 +19,24 @@ C64::C64() {
     m_opcodes[0xE8] = [&] (uint16_t i) { this->inx(i); };
     m_opcodes[0xF8] = [&] (uint16_t i) { this->sed(i); };
 
+    m_opcodes[0x09] = [&] (uint16_t i) { this->ora_imm(i); };
+    m_opcodes[0x0D] = [&] (uint16_t i) { this->ora_abs(i); };
+    m_opcodes[0x1D] = [&] (uint16_t i) { this->ora_abx(i); };
+    m_opcodes[0x19] = [&] (uint16_t i) { this->ora_aby(i); };
+    m_opcodes[0x05] = [&] (uint16_t i) { this->ora_zp(i); };
+    m_opcodes[0x15] = [&] (uint16_t i) { this->ora_zpx(i); };
+    m_opcodes[0x01] = [&] (uint16_t i) { this->ora_inx(i); };
+    m_opcodes[0x11] = [&] (uint16_t i) { this->ora_iny(i); };
+
+    m_opcodes[0x29] = [&] (uint16_t i) { this->and_imm(i); };
+    m_opcodes[0x2D] = [&] (uint16_t i) { this->and_abs(i); };
+    m_opcodes[0x3D] = [&] (uint16_t i) { this->and_abx(i); };
+    m_opcodes[0x39] = [&] (uint16_t i) { this->and_aby(i); };
+    m_opcodes[0x25] = [&] (uint16_t i) { this->and_zp(i); };
+    m_opcodes[0x35] = [&] (uint16_t i) { this->and_zpx(i); };
+    m_opcodes[0x21] = [&] (uint16_t i) { this->and_inx(i); };
+    m_opcodes[0x31] = [&] (uint16_t i) { this->and_iny(i); };
+
 
 }
 
@@ -215,4 +233,107 @@ void C64::inx(uint16_t) {
  */
 void C64::sed(uint16_t) {
     m_sr |= 0x08;
+}
+
+void C64::ora_imm(uint16_t i) {
+    m_a |= m_memory[i+1];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::ora_abs(uint16_t i) {
+    auto addr = getVec(i+1).toInt();
+    m_a |= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::ora_abx(uint16_t i) {
+    auto addr = getVec(i+1).toInt() + m_x;
+    m_a |= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::ora_aby(uint16_t i) {
+    auto addr = getVec(i+1).toInt() + m_y;
+    m_a |= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::ora_zp(uint16_t i) {
+    m_a |= m_memory[m_memory[i+1]];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::ora_zpx(uint16_t i) {
+    auto addr = m_memory[i+1] + m_x;
+    m_a |= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::ora_inx(uint16_t i) {
+    m_a |= addr_inx(m_memory[i+1]);
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::ora_iny(uint16_t i) {
+    m_a |= addr_iny(m_memory[i+1]);
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::and_imm(uint16_t i) {
+    m_a &= m_memory[i+1];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::and_abs(uint16_t i) {
+    auto addr = getVec(i+1).toInt();
+    m_a &= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::and_abx(uint16_t i) {
+    auto addr = getVec(i+1).toInt() + m_x;
+    m_a &= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::and_aby(uint16_t i) {
+    auto addr = getVec(i+1).toInt() + m_y;
+    m_a &= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::and_zp(uint16_t i) {
+    m_a &= m_memory[m_memory[i+1]];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::and_zpx(uint16_t i) {
+    m_a &= m_memory[m_memory[i+1] + m_x];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::and_inx(uint16_t i) {
+    m_a &= addr_inx(m_memory[i+1]);
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::and_iny(uint16_t i) {
+    m_a &= addr_iny(m_memory[i+1]);
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
 }

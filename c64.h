@@ -61,4 +61,38 @@ private:
     void cld(uint16_t);
     void inx(uint16_t);
     void sed(uint16_t);
+
+    /* ORA (short for "Logical OR on Accumulator") is the mnemonic for a machine language instruction which performs a
+     * bit-wise boolean "or" between each of the eight bits in the accumulator and their corresponding bits in the
+     * memory address specified. The eight resulting bits form a byte, which is stored in the accumulator.
+     */
+    void ora_imm(uint16_t);
+    void ora_abs(uint16_t);
+    void ora_abx(uint16_t);
+    void ora_aby(uint16_t);
+    void ora_zp(uint16_t);
+    void ora_zpx(uint16_t);
+    void ora_inx(uint16_t);
+    void ora_iny(uint16_t);
+
+    /* AND (short for "Logic AND") is the mnemonic for a machine language instruction which performs a bit-wise boolean
+     * "and" between the eight bits in the operand and the eight bits of the accumulator. Each resulting bit is a one
+     * (1) only if the corresponding bits of the operand and the accumulator are also one (1). If either corresponding
+     * bit is zero (0) then the resulting bit will be zero (0). The result is stored in the accumulator. In this way,
+     * the AND operation masks the value in the accumulator with the value in the operand.
+     */
+    void and_imm(uint16_t);
+    void and_abs(uint16_t);
+    void and_abx(uint16_t);
+    void and_aby(uint16_t);
+    void and_zp(uint16_t);
+    void and_zpx(uint16_t);
+    void and_inx(uint16_t);
+    void and_iny(uint16_t);
+
+    /* EOR (short for "Exclusive OR") is the mnemonic for a machine language instruction which performs a bit-wise
+     * boolean "Exclusive-or" between each of the eight bits in the accumulator and their corresponding bits in the
+     * memory address specified. The eight resulting bits form a byte, which is stored in the accumulator.
+     */
+    void eor_imm(uint16_t);
 };
