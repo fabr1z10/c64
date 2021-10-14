@@ -1,4 +1,6 @@
 #include "c64.h"
+#include <iostream>
+
 
 C64::C64() {
 
@@ -37,6 +39,14 @@ C64::C64() {
     m_opcodes[0x21] = [&] (uint16_t i) { this->and_inx(i); };
     m_opcodes[0x31] = [&] (uint16_t i) { this->and_iny(i); };
 
+    m_opcodes[0x49] = [&] (uint16_t i) { this->eor_imm(i); };
+    m_opcodes[0x4D] = [&] (uint16_t i) { this->eor_abs(i); };
+    m_opcodes[0x5D] = [&] (uint16_t i) { this->eor_abx(i); };
+    m_opcodes[0x59] = [&] (uint16_t i) { this->eor_aby(i); };
+    m_opcodes[0x45] = [&] (uint16_t i) { this->eor_zp(i); };
+    m_opcodes[0x55] = [&] (uint16_t i) { this->eor_zpx(i); };
+    m_opcodes[0x41] = [&] (uint16_t i) { this->eor_inx(i); };
+    m_opcodes[0x51] = [&] (uint16_t i) { this->eor_iny(i); };
 
 }
 
@@ -45,6 +55,14 @@ void C64::setNegativeFlag(uint8_t b) {
         m_sr |= 0x80;
     } else {
         m_sr &= 0x7F;
+    }
+}
+
+void C64::setCarryFlag(bool value) {
+    if (value) {
+        m_sr |= 0x01u;
+    } else {
+        m_sr &= 0xFEu;
     }
 }
 
@@ -151,6 +169,7 @@ void C64::cli(uint16_t) {
  */
 void C64::sei(uint16_t) {
     m_sr |= 0x04;
+    m_pc++;
 }
 
 /* DEY (short for "DEcrease Y") is the mnemonic for a machine language instruction which decrements the numerical value
@@ -336,4 +355,100 @@ void C64::and_iny(uint16_t i) {
     m_a &= addr_iny(m_memory[i+1]);
     setNegativeFlag(m_a);
     setZeroFlag(m_a);
+}
+
+void C64::eor_imm(uint16_t i) {
+    m_a ^= m_memory[i+1];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::eor_abs(uint16_t i) {
+    auto addr = getVec(i+1).toInt();
+    m_a ^= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::eor_abx(uint16_t i) {
+    auto addr = getVec(i+1).toInt() + m_x;
+    m_a ^= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::eor_aby(uint16_t i) {
+    auto addr = getVec(i+1).toInt() + m_y;
+    m_a ^= m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::eor_zp(uint16_t i) {
+    m_a ^= m_memory[m_memory[i+1]];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::eor_zpx(uint16_t i) {
+    m_a ^= m_memory[m_memory[i+1] + m_x];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::eor_inx(uint16_t i) {
+    m_a ^= addr_inx(m_memory[i+1]);
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::eor_iny(uint16_t i) {
+    m_a ^= addr_iny(m_memory[i+1]);
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+}
+
+void C64::adc_imm(uint16_t i) {
+    uint8_t carry = m_sr & 0x01;
+    uint16_t tmp = m_a + carry + m_memory[i+1];
+    // the lsb goes to a, the msb holds info about carry
+    m_a = tmp & 0x00FFu;
+    uint8_t nc = tmp & 0x0100u;
+    setCarryFlag(nc != 0);
+    // TODO check overflow
+
+
+}
+
+void C64::exec(uint16_t i) {
+    // set the program counter
+    m_pc = i;
+    bool continueLoop = true;
+    int co = 0;
+    while (co < 2) {
+        // fetch the opcode
+        uint8_t opcode = m_memory[m_pc];
+        std::cout << "opcode : " << int(opcode) << " ";
+        auto f = m_opcodes[opcode];
+        if (f) {
+            uint16_t old_pc = m_pc;
+            f(m_pc);
+            for (auto i = old_pc+1; i < m_pc; ++i) {
+                std::cout << int(m_memory[i]) << " ";
+            }
+            std::cout << std::endl;
+        } else {
+            std::cout << " !! unknown opcode !!\n";
+        }
+        co++;
+    };
+}
+
+void C64::load_prg(const std::vector<uint8_t> & data) {
+    // address is contained in the first 2 bytes
+    uint16_t addr = data[0] + data[1] * 256;
+    std::cout << "storing program @ " << addr << std::endl;
+    for (size_t i = 2; i < data.size(); ++i) {
+        m_memory[addr++] = data[i];
+    }
 }

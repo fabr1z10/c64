@@ -15,7 +15,7 @@ class C64 {
 
 public:
     C64 ();
-    std::vector<uint8_t> m_memory;
+    std::array<uint8_t, 65536> m_memory;
     void step();                    // executes next instruction
     uint16_t m_pc;                  // program counter
     uint8_t m_a;                    // accumulator
@@ -44,6 +44,10 @@ public:
     std::array<std::function<void(int)>, 256> m_opcodes;
     void setNegativeFlag(uint8_t);
     void setZeroFlag(uint8_t);
+    void setCarryFlag(bool);
+    void setOverflowFlag(uint8_t);
+    void load_prg(const std::vector<uint8_t>&);
+    void exec(uint16_t);
 private:
     void clc(uint16_t);
     void sec(uint16_t);
@@ -95,4 +99,18 @@ private:
      * memory address specified. The eight resulting bits form a byte, which is stored in the accumulator.
      */
     void eor_imm(uint16_t);
+    void eor_abs(uint16_t);
+    void eor_abx(uint16_t);
+    void eor_aby(uint16_t);
+    void eor_zp(uint16_t);
+    void eor_zpx(uint16_t);
+    void eor_inx(uint16_t);
+    void eor_iny(uint16_t);
+
+    /* ADC (short for "ADd with Carry") is the mnemonic for a machine language instruction which adds the byte held in
+     * the accumulator with that held in the memory address specified: The state of the carry flag before the addition
+     * takes place, is taken as the incoming carry in the addition. After the addition, the carry flag will hold the
+     * outgoing carry.
+     */
+    void adc_imm(uint16_t);
 };

@@ -71,12 +71,12 @@ void D64Parser::parse(const std::string &filename) {
 
 
     std::cout << "read " << pos << " bytes.\n";
-    for (int i = 0; i < 19; i++) {
-        for (int j = 0; j < 256; ++j) {
-            std::cout << std::hex << int(data[0x16500 + i*0x100 + j]) << ", ";
-        }
-        std::cout << "\n";
-    }
+//    for (int i = 0; i < 19; i++) {
+//        for (int j = 0; j < 256; ++j) {
+//            std::cout << std::hex << int(data[0x16500 + i*0x100 + j]) << ", ";
+//        }
+//        std::cout << "\n";
+//    }
 //    uint32_t base_dir = 0x16600;
 //
 //
