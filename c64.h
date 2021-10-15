@@ -45,7 +45,7 @@ public:
     void setNegativeFlag(uint8_t);
     void setZeroFlag(uint8_t);
     void setCarryFlag(bool);
-    void setOverflowFlag(uint8_t);
+    void setOverflowFlag(bool);
     void load_prg(const std::vector<uint8_t>&);
     void exec(uint16_t);
 private:
@@ -113,4 +113,7 @@ private:
      * outgoing carry.
      */
     void adc_imm(uint16_t);
+
+
+
 };

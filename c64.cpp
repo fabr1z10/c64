@@ -66,6 +66,14 @@ void C64::setCarryFlag(bool value) {
     }
 }
 
+void C64::setOverflowFlag(bool value) {
+    if (value) {
+        m_sr |= 0x40u;
+    } else {
+        m_sr &= 0xDFu;
+    }
+}
+
 void C64::setZeroFlag(uint8_t b) {
     if (b == 0) {
         m_sr |= 0x02;
@@ -412,9 +420,14 @@ void C64::adc_imm(uint16_t i) {
     uint8_t carry = m_sr & 0x01;
     uint16_t tmp = m_a + carry + m_memory[i+1];
     // the lsb goes to a, the msb holds info about carry
-    m_a = tmp & 0x00FFu;
+    uint8_t tmp2 = tmp & 0x00FFu;
+    bool overflow = (((m_a ^ m_memory[i+1]) & 0x80u) == 0) && (((m_a ^ tmp2) & 0x80u) == 1);
+    m_a = tmp2;
     uint8_t nc = tmp & 0x0100u;
     setCarryFlag(nc != 0);
+    setOverflowFlag(overflow);
+    setZeroFlag(m_a);
+    setNegativeFlag(m_a);
     // TODO check overflow
 
 
