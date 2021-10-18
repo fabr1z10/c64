@@ -5,10 +5,19 @@
 #include <array>
 #include <functional>
 
+
+
+
 struct Vector {
     uint8_t lo;
     uint8_t hi;
     uint16_t toInt() const;
+};
+
+struct OpcodeInfo {
+    std::string text;
+    std::string addressMode;
+    uint8_t bytes;
 };
 
 class C64 {
@@ -40,14 +49,16 @@ public:
     Vector getVec(uint16_t);
     uint8_t addr_inx(uint8_t);
     uint8_t addr_iny(uint8_t);
-
+    uint16_t sign_extend(uint8_t);
     std::array<std::function<void(int)>, 256> m_opcodes;
+    std::array<OpcodeInfo, 256> m_opcodeInfos;
     void setNegativeFlag(uint8_t);
     void setZeroFlag(uint8_t);
     void setCarryFlag(bool);
     void setOverflowFlag(bool);
     void load_prg(const std::vector<uint8_t>&);
     void exec(uint16_t);
+    bool isDecimalMode() const;
 private:
     void clc(uint16_t);
     void sec(uint16_t);
@@ -115,5 +126,49 @@ private:
     void adc_imm(uint16_t);
 
 
+    /* LDA (short for "LoaD Accumulator") is the mnemonic for a machine language instruction which retrieves a copy
+     * from the specified RAM or I/O address, and stores it in the accumulator. The content of the memory location is
+     * not affected by the operation.
+     */
+    void lda_imm(uint16_t);
+    void lda_aby(uint16_t);
 
+    /* LDY (short for "LoaD Y") is the mnemonic for a machine language instruction which retrieves a copy from the
+     * specified RAM or I/O address, and stores it in the Y index register. The content of the memory location is not
+     * affected by the operation.
+     */
+    void ldy_imm(uint16_t);
+
+
+    /* STA (short for "STore Accumulator") is the mnemonic for a machine language instruction which stores a copy of
+     * the byte held in the accumulator at the RAM or I/O address specified. The contents of the accumulator itself
+     * remains unchanged through the operation.
+     */
+    void sta_aby(uint16_t);
+    void sta_zp(uint16_t);
+
+
+    /* STY (short for "STore Y") is the mnemonic for a machine language instruction which stores a copy of the byte
+     * held in the Y index register at the RAM or I/O address specified. The contents of the Y index register itself
+     * remains unchanged through the operation.
+     */
+    void sty_zp(uint16_t);
+
+
+    /* BNE (short for "Branch if Not Equal") is the mnemonic for a machine language instruction which branches, or
+     * "jumps", to the address specified if, and only if the zero flag is clear. If the zero flag is set when the CPU
+     * encounters a BNE instruction, the CPU will continue at the instruction following the BNE rather than taking the
+     * jump.
+     * BNE only supports the Relative addressing mode, as shown in the table at right. In the assembler formats listed,
+     * nn is a one-byte (8-bit) relative address. The relative address is treated as a signed byte; that is, it shifts
+     * program execution to a location within a number of bytes ranging from -128 to 127, relative to the address of the
+     * instruction *** following *** the branch instruction.
+     */
+    void bne(uint16_t);
+
+    /* JMP (short for "JuMP") is the mnemonic for a machine language instruction which unconditionally transfers program
+     * execution to the specified address. To those familiar with BASIC programming; this is the machine language
+     * equivalent to GOTO.
+     */
+    void jmp(uint16_t);
 };

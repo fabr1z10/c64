@@ -16,6 +16,9 @@ int main() {
         }
     }
     C64 computer;
+
+    // load opcodes
+
     computer.load_prg(c);
     computer.exec(0x0811);
 }

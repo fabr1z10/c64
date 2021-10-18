@@ -1,54 +1,121 @@
 #include "c64.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 
 C64::C64() {
 
-    m_opcodes[0x08] = [&] (uint16_t i) { this->php(i); };
-    m_opcodes[0x18] = [&] (uint16_t i) { this->clc(i); };
-    m_opcodes[0x28] = [&] (uint16_t i) { this->plp(i); };
-    m_opcodes[0x38] = [&] (uint16_t i) { this->sec(i); };
-    m_opcodes[0x48] = [&] (uint16_t i) { this->pha(i); };
-    m_opcodes[0x58] = [&] (uint16_t i) { this->cli(i); };
-    m_opcodes[0x68] = [&] (uint16_t i) { this->pla(i); };
-    m_opcodes[0x78] = [&] (uint16_t i) { this->sei(i); };
-    m_opcodes[0x88] = [&] (uint16_t i) { this->dey(i); };
-    m_opcodes[0x98] = [&] (uint16_t i) { this->tya(i); };
-    m_opcodes[0xA8] = [&] (uint16_t i) { this->tay(i); };
-    m_opcodes[0xB8] = [&] (uint16_t i) { this->clv(i); };
-    m_opcodes[0xC8] = [&] (uint16_t i) { this->iny(i); };
-    m_opcodes[0xD8] = [&] (uint16_t i) { this->cld(i); };
-    m_opcodes[0xE8] = [&] (uint16_t i) { this->inx(i); };
-    m_opcodes[0xF8] = [&] (uint16_t i) { this->sed(i); };
+    m_opcodes[0x08] = [&](uint16_t i) { this->php(i); };
+    m_opcodes[0x18] = [&](uint16_t i) { this->clc(i); };
+    m_opcodes[0x28] = [&](uint16_t i) { this->plp(i); };
+    m_opcodes[0x38] = [&](uint16_t i) { this->sec(i); };
+    m_opcodes[0x48] = [&](uint16_t i) { this->pha(i); };
+    m_opcodes[0x58] = [&](uint16_t i) { this->cli(i); };
+    m_opcodes[0x68] = [&](uint16_t i) { this->pla(i); };
+    m_opcodes[0x78] = [&](uint16_t i) { this->sei(i); };
+    m_opcodes[0x88] = [&](uint16_t i) { this->dey(i); };
+    m_opcodes[0x98] = [&](uint16_t i) { this->tya(i); };
+    m_opcodes[0xA8] = [&](uint16_t i) { this->tay(i); };
+    m_opcodes[0xB8] = [&](uint16_t i) { this->clv(i); };
+    m_opcodes[0xC8] = [&](uint16_t i) { this->iny(i); };
+    m_opcodes[0xD8] = [&](uint16_t i) { this->cld(i); };
+    m_opcodes[0xE8] = [&](uint16_t i) { this->inx(i); };
+    m_opcodes[0xF8] = [&](uint16_t i) { this->sed(i); };
 
-    m_opcodes[0x09] = [&] (uint16_t i) { this->ora_imm(i); };
-    m_opcodes[0x0D] = [&] (uint16_t i) { this->ora_abs(i); };
-    m_opcodes[0x1D] = [&] (uint16_t i) { this->ora_abx(i); };
-    m_opcodes[0x19] = [&] (uint16_t i) { this->ora_aby(i); };
-    m_opcodes[0x05] = [&] (uint16_t i) { this->ora_zp(i); };
-    m_opcodes[0x15] = [&] (uint16_t i) { this->ora_zpx(i); };
-    m_opcodes[0x01] = [&] (uint16_t i) { this->ora_inx(i); };
-    m_opcodes[0x11] = [&] (uint16_t i) { this->ora_iny(i); };
+    m_opcodes[0x09] = [&](uint16_t i) { this->ora_imm(i); };
+    m_opcodes[0x0D] = [&](uint16_t i) { this->ora_abs(i); };
+    m_opcodes[0x1D] = [&](uint16_t i) { this->ora_abx(i); };
+    m_opcodes[0x19] = [&](uint16_t i) { this->ora_aby(i); };
+    m_opcodes[0x05] = [&](uint16_t i) { this->ora_zp(i); };
+    m_opcodes[0x15] = [&](uint16_t i) { this->ora_zpx(i); };
+    m_opcodes[0x01] = [&](uint16_t i) { this->ora_inx(i); };
+    m_opcodes[0x11] = [&](uint16_t i) { this->ora_iny(i); };
 
-    m_opcodes[0x29] = [&] (uint16_t i) { this->and_imm(i); };
-    m_opcodes[0x2D] = [&] (uint16_t i) { this->and_abs(i); };
-    m_opcodes[0x3D] = [&] (uint16_t i) { this->and_abx(i); };
-    m_opcodes[0x39] = [&] (uint16_t i) { this->and_aby(i); };
-    m_opcodes[0x25] = [&] (uint16_t i) { this->and_zp(i); };
-    m_opcodes[0x35] = [&] (uint16_t i) { this->and_zpx(i); };
-    m_opcodes[0x21] = [&] (uint16_t i) { this->and_inx(i); };
-    m_opcodes[0x31] = [&] (uint16_t i) { this->and_iny(i); };
+    m_opcodes[0x29] = [&](uint16_t i) { this->and_imm(i); };
+    m_opcodes[0x2D] = [&](uint16_t i) { this->and_abs(i); };
+    m_opcodes[0x3D] = [&](uint16_t i) { this->and_abx(i); };
+    m_opcodes[0x39] = [&](uint16_t i) { this->and_aby(i); };
+    m_opcodes[0x25] = [&](uint16_t i) { this->and_zp(i); };
+    m_opcodes[0x35] = [&](uint16_t i) { this->and_zpx(i); };
+    m_opcodes[0x21] = [&](uint16_t i) { this->and_inx(i); };
+    m_opcodes[0x31] = [&](uint16_t i) { this->and_iny(i); };
 
-    m_opcodes[0x49] = [&] (uint16_t i) { this->eor_imm(i); };
-    m_opcodes[0x4D] = [&] (uint16_t i) { this->eor_abs(i); };
-    m_opcodes[0x5D] = [&] (uint16_t i) { this->eor_abx(i); };
-    m_opcodes[0x59] = [&] (uint16_t i) { this->eor_aby(i); };
-    m_opcodes[0x45] = [&] (uint16_t i) { this->eor_zp(i); };
-    m_opcodes[0x55] = [&] (uint16_t i) { this->eor_zpx(i); };
-    m_opcodes[0x41] = [&] (uint16_t i) { this->eor_inx(i); };
-    m_opcodes[0x51] = [&] (uint16_t i) { this->eor_iny(i); };
+    m_opcodes[0x49] = [&](uint16_t i) { this->eor_imm(i); };
+    m_opcodes[0x4D] = [&](uint16_t i) { this->eor_abs(i); };
+    m_opcodes[0x5D] = [&](uint16_t i) { this->eor_abx(i); };
+    m_opcodes[0x59] = [&](uint16_t i) { this->eor_aby(i); };
+    m_opcodes[0x45] = [&](uint16_t i) { this->eor_zp(i); };
+    m_opcodes[0x55] = [&](uint16_t i) { this->eor_zpx(i); };
+    m_opcodes[0x41] = [&](uint16_t i) { this->eor_inx(i); };
+    m_opcodes[0x51] = [&](uint16_t i) { this->eor_iny(i); };
+
+    m_opcodes[0xa9] = [&](uint16_t i) { this->lda_imm(i); };
+    m_opcodes[0xb9] = [&](uint16_t i) { this->lda_aby(i); };
+
+
+    m_opcodes[0xa0] = [&](uint16_t i) { this->ldy_imm(i); };
+
+    m_opcodes[0x99] = [&](uint16_t i) { this->sta_aby(i); };
+    m_opcodes[0x85] = [&](uint16_t i) { this->sta_zp(i); };
+
+    m_opcodes[0x84] = [&](uint16_t i) { this->sty_zp(i); };
+
+    m_opcodes[0xd0] = [&](uint16_t i) { this->bne(i); };
+
+    m_opcodes[0x4c] = [&](uint16_t i) { this->jmp(i); };
+
+    // Create an input filestream
+    std::ifstream myFile("/home/fabrizio/c64/opcodes");
+
+    // Make sure the file is open
+    if (!myFile.is_open()) throw std::runtime_error("Could not open file");
+
+    // Helper vars
+    std::string line, opcode, addressingMode;
+    uint8_t nbytes;
+    int val;
+
+    // Read the column names
+    uint8_t j=0u;
+    if (myFile.good()) {
+        // Extract the first line in the file
+        while (std::getline(myFile, line)) {
+
+            // Create a stringstream from line
+            std::stringstream ss(line);
+
+            // Extract each column name
+            while (std::getline(ss, opcode, ',')) {
+                std::getline(ss, addressingMode, ',');
+                std::string nb;
+                std::getline(ss, nb,',');
+                nbytes = std::stoi(nb);
+                //std::cout << opcode << ", " << addressingMode << ", " << (int)nbytes;
+
+                // Initialize and add <colname, int vector> pairs to result
+                m_opcodeInfos[j++] = {opcode, addressingMode, nbytes};
+
+                //result.push_back({colname, std::vector<int> {}});
+            }
+        }
+    }
+
 
 }
+
+uint16_t C64::sign_extend(uint8_t u) {
+    if (u & 0x80) {
+        return 0xFF00 + u;
+    } else {
+        return u;
+    }
+}
+
+bool C64::isDecimalMode() const {
+    return m_sr & 0x08;
+}
+
 
 void C64::setNegativeFlag(uint8_t b) {
     if (b & 0x80) {       // negative
@@ -233,6 +300,8 @@ void C64::iny(uint16_t) {
 
     // The zero flag is set if the result is zero, or cleared if it is non-zero.
     setZeroFlag(m_y);
+
+    m_pc++;
 }
 
 /* CLD (short for "CLear Decimal flag") is the mnemonic for a machine language instruction which clears the decimal
@@ -417,19 +486,23 @@ void C64::eor_iny(uint16_t i) {
 }
 
 void C64::adc_imm(uint16_t i) {
-    uint8_t carry = m_sr & 0x01;
-    uint16_t tmp = m_a + carry + m_memory[i+1];
-    // the lsb goes to a, the msb holds info about carry
-    uint8_t tmp2 = tmp & 0x00FFu;
-    bool overflow = (((m_a ^ m_memory[i+1]) & 0x80u) == 0) && (((m_a ^ tmp2) & 0x80u) == 1);
-    m_a = tmp2;
-    uint8_t nc = tmp & 0x0100u;
-    setCarryFlag(nc != 0);
-    setOverflowFlag(overflow);
-    setZeroFlag(m_a);
-    setNegativeFlag(m_a);
-    // TODO check overflow
+    if (isDecimalMode()) {
+        // TODO
+    } else {
+        // get current carry
+        uint8_t carry = m_sr & 0x01;
+        uint16_t tmp = m_a + carry + m_memory[i + 1];
+        // the lsb goes to a, the msb holds info about carry
+        uint8_t tmp2 = tmp & 0x00FFu;
+        bool overflow = (((m_a ^ m_memory[i + 1]) & 0x80u) == 0) && (((m_a ^ tmp2) & 0x80u) == 1);
+        m_a = tmp2;
+        uint8_t nc = tmp & 0x0100u;
+        setCarryFlag(nc != 0);
+        setOverflowFlag(overflow);
+        setZeroFlag(m_a);
+        setNegativeFlag(m_a);
 
+    }
 
 }
 
@@ -438,20 +511,21 @@ void C64::exec(uint16_t i) {
     m_pc = i;
     bool continueLoop = true;
     int co = 0;
-    while (co < 2) {
+    while (co < 20000) {
         // fetch the opcode
         uint8_t opcode = m_memory[m_pc];
-        std::cout << "opcode : " << int(opcode) << " ";
+        std::cout << m_pc << " opcode : " << int(opcode) << " ";
+        const auto& info = m_opcodeInfos[opcode];
+        for (auto i = 1; i < info.bytes; ++i) {
+            std::cout << int(m_memory[m_pc+i]) << " ";
+        }
+        std::cout << "\n";
         auto f = m_opcodes[opcode];
         if (f) {
-            uint16_t old_pc = m_pc;
             f(m_pc);
-            for (auto i = old_pc+1; i < m_pc; ++i) {
-                std::cout << int(m_memory[i]) << " ";
-            }
-            std::cout << std::endl;
         } else {
             std::cout << " !! unknown opcode !!\n";
+            exit(1);
         }
         co++;
     };
@@ -464,4 +538,61 @@ void C64::load_prg(const std::vector<uint8_t> & data) {
     for (size_t i = 2; i < data.size(); ++i) {
         m_memory[addr++] = data[i];
     }
+}
+
+void C64::lda_imm(uint16_t i) {
+    m_a = m_memory[i+1];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+    m_pc += 2;
+}
+
+void C64::lda_aby(uint16_t i) {
+    auto addr = getVec(i+1).toInt() + m_y;
+    m_a = m_memory[addr];
+    setNegativeFlag(m_a);
+    setZeroFlag(m_a);
+    m_pc += 3;
+
+
+}
+
+void C64::ldy_imm(uint16_t i) {
+    m_y = m_memory[i+1];
+    setNegativeFlag(m_y);
+    setZeroFlag(m_y);
+    m_pc += 2;
+}
+
+void C64::sta_aby(uint16_t i) {
+    auto addr = getVec(i+1).toInt() + m_y;
+    m_memory[addr] = m_a;
+    m_pc += 3;
+}
+
+void C64::sta_zp(uint16_t i) {
+    m_memory[m_memory[i+1]] = m_a;
+    m_pc += 2;
+}
+
+void C64::sty_zp(uint16_t i) {
+    m_memory[m_memory[i+1]] = m_y;
+    m_pc += 2;
+}
+
+void C64::bne(uint16_t i) {
+    if ((m_sr & 0x02) == 0) {
+        // zero flag is clear --> jump
+        uint8_t offset = m_memory[i+1];
+
+        m_pc += 2 + sign_extend(m_memory[i+1]);
+    } else {
+        m_pc += 2;
+    }
+}
+
+void C64::jmp(uint16_t i) {
+    auto addr = getVec(i+1).toInt();
+    m_pc = addr;
+
 }
