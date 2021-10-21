@@ -58,7 +58,12 @@ public:
     void setOverflowFlag(bool);
     void load_prg(const std::vector<uint8_t>&);
     void exec(uint16_t);
+    void step(uint16_t);
     bool isDecimalMode() const;
+    uint8_t peek(uint16_t);
+    void poke(uint16_t address, uint8_t value);
+    void poke(uint16_t address, const std::vector<uint8_t>& data);
+    void setProgramCounter(uint16_t);
 private:
     void clc(uint16_t);
     void sec(uint16_t);
@@ -171,4 +176,16 @@ private:
      * equivalent to GOTO.
      */
     void jmp(uint16_t);
+
+    /* INC (short for "INCrease") is the mnemonic for a machine language instruction which increases the numerical value
+     * of the contents of the address specified by one, and "wraps over" when the numerical limits of a byte are
+     * exceeded.
+     */
+    void inc_abs(uint16_t);
+
+    /* CMP (short for "CoMPare") is the mnemonic for a machine language instruction which compares the contents of the
+     * accumulator against that of the specified operand by subtracting operand from accumulator value, and setting the
+     * negative and carry flags according to the result. Unlike SBC, the result of the subtraction is discarded rather
+     * than stored back into the accumulator, which is thus unaffected by the CMP operation.
+     */
 };

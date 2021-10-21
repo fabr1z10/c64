@@ -65,6 +65,8 @@ C64::C64() {
 
     m_opcodes[0x4c] = [&](uint16_t i) { this->jmp(i); };
 
+    m_opcodes[0xee] = [&](uint16_t i) { this->inc_abs(i); };
+
     // Create an input filestream
     std::ifstream myFile("/home/fabrizio/c64/opcodes");
 
@@ -506,6 +508,28 @@ void C64::adc_imm(uint16_t i) {
 
 }
 
+
+void C64::setProgramCounter(uint16_t i) {
+    m_pc = i;
+}
+void C64::step() {
+    uint8_t opcode = m_memory[m_pc];
+    std::cout << m_pc << " opcode : " << int(opcode) << " ";
+    const auto& info = m_opcodeInfos[opcode];
+    for (auto i = 1; i < info.bytes; ++i) {
+        std::cout << int(m_memory[m_pc+i]) << " ";
+    }
+    std::cout << "\n";
+    auto f = m_opcodes[opcode];
+    if (f) {
+        f(m_pc);
+    } else {
+        std::cout << " !! unknown opcode !!\n";
+        exit(1);
+    }
+
+}
+
 void C64::exec(uint16_t i) {
     // set the program counter
     m_pc = i;
@@ -595,4 +619,25 @@ void C64::jmp(uint16_t i) {
     auto addr = getVec(i+1).toInt();
     m_pc = addr;
 
+}
+
+void C64::inc_abs(uint16_t i) {
+    auto addr = getVec(i+1).toInt();
+    m_memory[addr]++;
+    m_pc += 3;
+}
+
+uint8_t C64::peek(uint16_t i) {
+    return m_memory[i];
+}
+
+void C64::poke(uint16_t address, uint8_t value) {
+    m_memory[address] = value;
+}
+
+void C64::poke(uint16_t address, const std::vector<uint8_t>& data) {
+    uint16_t a = address;
+    for (const auto& b : data) {
+        m_memory[a++] = b;
+    }
 }
