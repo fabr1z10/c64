@@ -1,5 +1,6 @@
 #include "c64.h"
 #include <iostream>
+#include <iomanip>      // std::setw
 #include <fstream>
 #include <sstream>
 #include <cstring>
@@ -54,6 +55,8 @@ C64::C64(Mode mode) : _mode(mode), _clockCycle(0) {
     readFile ("/home/fabrizio/c64/rom/chargen", &_charRom[0]);
     memset(_ram, 0x00, 65536);
 
+    // init reg
+    _sp = 0xFF;
 	// initialize RAM
 	//
 	_ram[0x0000] = 0x2F;				// processor port data direction register
@@ -96,7 +99,10 @@ std::string C64::disassemble(const OpcodeInfo& opcode, uint16_t address) {
 		case AddressMode::IMPLIED:
 			break;
 		case AddressMode::IMMEDIATE:
-			stream << "#$" << std::hex << (int) readByte(address+1);
+			stream << "#$" << std::hex << std::setw(2) <<std::setfill('0')<< (int) readByte(address+1);
+			break;
+		case AddressMode::ABSOLUTE_X:
+			stream << "$" << std::hex << std::setw(4) <<std::setfill('0')<< (int) readVec(address+1) << ",X";
 			break;
 
 	}
@@ -136,7 +142,7 @@ void C64::run() {
 		std::cout << std::hex << (int) _pc << " ";
 		for (size_t i = 0; i < 4; ++i) {
 			if (i < op.bytes) {
-				std::cout << std::hex << (int) readByte(_pc+i) << " ";
+				std::cout << std::hex << std::setfill('0') << std::setw(2) << (int) readByte(_pc+i) << " ";
 			} else {
 				std::cout << "   ";
 			}
@@ -145,6 +151,8 @@ void C64::run() {
 		}
 		std::cout << disassemble(op, _pc) << std::endl;
 		(*this.*(op.methodPtrOne))();
+		// increment pc
+		//_pc += op.bytes;
 
 
 
@@ -175,10 +183,11 @@ void C64::initOpcodes() {
 
 	_opcodes[0xA2] = {"ldx", AddressMode::IMMEDIATE, 2, 2, &C64::ldx<2, &C64::getOperandImm>};
 	_opcodes[0x78] = {"sei", AddressMode::IMPLIED, 1, 2, &C64::sei};
-
-
-
-
+	_opcodes[0x9A] = {"txs", AddressMode::IMPLIED, 1, 2, &C64::txs};
+	_opcodes[0xD8] = {"cld", AddressMode::IMPLIED, 1, 2, &C64::cld};
+    _opcodes[0x20] = {"jsr", AddressMode::ABSOLUTE, 3, 6, &C64::jsr};
+	_opcodes[0xBD] = {"lda", AddressMode::ABSOLUTE_X, 3, 4, &C64::lda<3, &C64::getOperandAbx>};
+	_opcodes[0xDD] = {"cmp", AddressMode::ABSOLUTE_X, 3, 4, &C64::cmp<3, &C64::getOperandAbx>};
 	//    _opcodes[0x00] = {"brk", AddressMode::IMPLIED, 1, 7, &C64::brk};
 	//_opcodes[0x01] = {"ora", AddressMode::INDEXED_INDIRECT, 2, 6, &C64::ora<2, &C64::getOperandInx>};
 //    _opcodes[0x05] = {"ora", AddressMode::ZEROPAGE, 2, 3, &C64::ora<2, &C64::getOperandZP>};
@@ -251,6 +260,14 @@ C64::~C64() {
 
 }
 
+void C64::setCarryFlag(const uint16_t & value) {
+	if ((value & 0xFF00) == 0) {
+		// no carry
+		_status &= 0xFE;
+	} else {
+		_status |= 0x01;
+	}
+}
 
 void C64::setNegFlag(const uint8_t& value) {
     if (value & 0x80) {
@@ -299,7 +316,7 @@ uint8_t C64::getOperandZPx() {
 }
 
 void C64::push(uint8_t byte) {
-    _ram[_sp] = byte;
+    _ram[0x0100 + _sp] = byte;
     _sp--;
 }
 
@@ -398,10 +415,11 @@ void C64::cli() {
     _status &= 0xFB;
     _pc += 1;
 }
+
+// JSR (short for "Jump to SubRoutine") is the mnemonic for a machine language instruction which calls a subroutine;
 void C64::jsr() {
     uint16_t jmpAddress = readVec(_pc+1);
-    _pc += 2;
-    pushVec(_pc);
+    pushVec(_pc + 2);
     _pc = jmpAddress;
 }
 
@@ -423,10 +441,20 @@ void C64::pla() {
 
 void C64::sei() {
     _status |= 0x04;
-    _pc += 1;
+    _pc ++;
 }
 
+void C64::txs() {
+	// TXS (short for "Transfer X to Stack pointer") is the mnemonic for a machine language instruction which transfers
+	// ("copies") the contents of the X index register into the stack pointer.
+	push(_x);
+	_pc ++;
+}
 
+void C64::cld() {
+	_status &= 0xF7;
+	_pc++;
+}
 //C64::C64(Mode mode) : _mode(mode), _clockCycle(0) {
 //    _kernal = new uint8_t[8192];
 //    _basic = new uint8_t[8192];

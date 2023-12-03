@@ -105,6 +105,7 @@ private:
     uint16_t popVec();
     void setNegFlag(const uint8_t&);
     void setZeroFlag(const uint8_t&);
+    void setCarryFlag(const uint16_t&);
     void branch(bool);
     void brk();
     void php();
@@ -124,6 +125,8 @@ private:
     void pla();
     void bvs();
     void sei();
+    void txs();
+    void cld();
 
 
 
@@ -280,6 +283,30 @@ private:
     	_pc += length;
     }
 
+	template<int length, uint8_t (C64::*addr)()>
+	void lda() {
+		auto value = (*this.*addr)();
+		_a = value;
+		_pc += length;
+
+		// The negative status flag is set if the result is negative, i.e. has it's most significant bit set.
+		setNegFlag(_a);
+
+		// The zero flag is set if the result is zero, or cleared if it is non-zero.
+		setZeroFlag(_a);
+	}
+
+	template<int length, uint8_t (C64::*addr)()>
+	void cmp() {
+		auto operand = (*this.*addr)();
+		uint16_t result = _a - operand;
+		uint8_t lb = (uint8_t) result & 0xFF;
+		setCarryFlag(result);
+		setNegFlag(lb);
+		setZeroFlag(lb);
+		_pc += length;
+
+	}
 
 
     uint8_t& getRefAcc() {
